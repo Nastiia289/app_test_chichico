@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:background="#33333359">
+
+    <LinearLayout
+        android:layout_width="283dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:background="@drawable/shape"
+        android:orientation="vertical"
+        android:elevation="0dp"
+        android:stateListAnimator="@null">
+        <TextView
+            android:id="@+id/popup_text"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/roboto"
+            android:lineHeight="24dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:text="Смс з кодом було відправлено. Повторити відправку? "
+            android:textAlignment="center"
+            android:textColor="@color/regular_text"
+            android:textSize="16dp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/popup_button"
+            android:layout_width="260dp"
+            android:layout_height="50dp"
+            android:background="@drawable/button_rounded"
+            android:fontFamily="@font/roboto"
+            android:lineHeight="27sp"
+            android:text="Відправити"
+            android:textAlignment="center"
+            android:textAllCaps="false"
+            android:textColor="@color/button_next"
+            android:textFontWeight="500"
+            android:textSize="16sp"
+            android:elevation="0dp"
+            android:stateListAnimator="@null"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/close_popup_button"
+            android:layout_width="260dp"
+            android:layout_height="50dp"
+            android:fontFamily="@font/roboto"
+            android:background="@color/transparent"
+            android:lineHeight="27sp"
+            android:text="Не відправляти"
+            android:layout_marginBottom="6dp"
+            android:textAlignment="center"
+            android:textAllCaps="false"
+            android:textColor="@color/button_next"
+            android:textFontWeight="500"
+            android:textSize="16sp"
+            android:elevation="0dp"
+            android:stateListAnimator="@null"/>
+    </LinearLayout>
+
+</RelativeLayout>
