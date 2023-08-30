@@ -10,6 +10,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
+import com.example.test.databinding.ActivityChangLocationBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -22,10 +24,9 @@ import com.google.android.gms.maps.model.PolylineOptions
 import com.google.maps.DirectionsApi
 import com.google.maps.GeoApiContext
 import com.google.maps.model.TravelMode
+class ChangLocation : AppCompatActivity(), OnMapReadyCallback {
 
-
-class ChangeLocation : AppCompatActivity(), OnMapReadyCallback {
-
+    private lateinit var binding: ActivityChangLocationBinding
     private lateinit var exit: ImageView
     private lateinit var setUserWay: AppCompatButton
     private lateinit var map: SupportMapFragment
@@ -33,17 +34,35 @@ class ChangeLocation : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var userLocation: LatLng? = null
-
+    private lateinit var viewModel: ChangLocationActivityViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_chang_location)
+        binding = ActivityChangLocationBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        exit = findViewById(R.id.imageView)
+        viewModel = ViewModelProvider(this)[ChangLocationActivityViewModel::class.java]
+
+        exit = binding.imageView
         map = supportFragmentManager.findFragmentById(R.id.mapView) as SupportMapFragment
-        setUserWay = findViewById(R.id.set_way)
+        setUserWay = binding.setWay
 
-        exit.setOnClickListener {
-            val intent = Intent(this@ChangeLocation, Restoration::class.java)
+        setUserWay.setOnClickListener {
+            viewModel.fetchUserLocation()
+        }
+
+        viewModel.drawnRoute.observe(this) { polylineOptions ->
+            mMap.addPolyline(polylineOptions)
+        }
+
+        viewModel.userLocation.observe(this) { location ->
+            userLocation = location
+            updateUserMarker()
+        }
+        exit.setOnClickListener{
+            viewModel.onExitClick()
+        }
+        viewModel.exit.observe(this){
+            val intent = Intent(this@ChangLocation, RestorationActivity::class.java)
             startActivity(intent)
         }
 
@@ -66,6 +85,14 @@ class ChangeLocation : AppCompatActivity(), OnMapReadyCallback {
         map.getMapAsync(this)
     }
 
+    private fun updateUserMarker() {
+        userLocation?.let { location ->
+            mMap.clear()
+            val markerOptions = MarkerOptions().position(location).title("Your position")
+            mMap.addMarker(markerOptions)
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15f))
+        }
+    }
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
@@ -86,7 +113,6 @@ class ChangeLocation : AppCompatActivity(), OnMapReadyCallback {
         }
         drawRoutesBetweenPoints(points)
     }
-
     private fun drawRoutesBetweenPoints(points: List<LatLng>) {
         val context = GeoApiContext.Builder()
             .apiKey("AIzaSyDW42dyZ98vB5f4g5FytC0wR412X4cPb7M")
@@ -115,38 +141,30 @@ class ChangeLocation : AppCompatActivity(), OnMapReadyCallback {
             e.printStackTrace()
         }
     }
-
-
     override fun onStart() {
         super.onStart()
         map.onStart()
     }
-
     override fun onResume() {
         super.onResume()
         map.onResume()
     }
-
     override fun onPause() {
         super.onPause()
         map.onPause()
     }
-
     override fun onStop() {
         super.onStop()
         map.onStop()
     }
-
     override fun onDestroy() {
         super.onDestroy()
         map.onDestroy()
     }
-
     override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
         super.onSaveInstanceState(outState, outPersistentState)
         map.onSaveInstanceState(outState)
     }
-
     override fun onLowMemory() {
         super.onLowMemory()
         map.onLowMemory()

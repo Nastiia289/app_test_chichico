@@ -32,16 +32,16 @@
         android:theme="@style/Theme.Test"
         tools:targetApi="31">
     <activity
-            android:name=".AddReview"
+            android:name=".AddReviewActivity"
             android:exported="false" />
         <activity
-            android:name=".ChangeLocation"
+            android:name=".ChangLocation"
             android:exported="false" />
         <activity
-            android:name=".Restoration"
+            android:name=".RestorationActivity"
             android:exported="false" />
         <activity
-            android:name=".GeneralPage"
+            android:name=".GeneralPageActivity"
             android:exported="false" />
         <activity
             android:name=".registration.NameLoginActivity"

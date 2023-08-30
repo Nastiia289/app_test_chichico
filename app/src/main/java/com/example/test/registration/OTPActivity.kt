@@ -7,8 +7,10 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Button
 import android.widget.TextView
+import androidx.lifecycle.ViewModelProvider
 import br.com.sapereaude.maskedEditText.MaskedEditText
 import com.example.test.R
+import com.example.test.databinding.ActivityOtpBinding
 import com.example.test.fragments.PopUpFragment
 import com.example.test.fragments.ResendCodePopup
 import com.google.firebase.FirebaseException
@@ -22,8 +24,12 @@ import java.util.Timer
 import java.util.TimerTask
 import java.util.concurrent.TimeUnit
 
+
 class OTPActivity : AppCompatActivity() {
 
+    private lateinit var viewModel: OTPActivityViewModel
+
+    private lateinit var binding: ActivityOtpBinding
     private lateinit var otpInput: MaskedEditText
     private lateinit var nextButton: Button
     lateinit var resendCode: TextView
@@ -43,52 +49,71 @@ class OTPActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_otp)
+        binding = ActivityOtpBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        viewModel = ViewModelProvider(this)[OTPActivityViewModel::class.java]
 
         auth = Firebase.auth
         mAuth = FirebaseAuth.getInstance()
 
-        otpInput = findViewById(R.id.login_otp)
-        nextButton = findViewById(R.id.login_sms_code_next_page)
-        resendCode = findViewById(R.id.resend_otp_code)
+        otpInput = binding.loginOtp
+        nextButton = binding.loginSmsCodeNextPage
+        resendCode = binding.resendOtpCode
 
         phoneNumber = intent.getStringExtra("phone")
         sendOtp(phoneNumber, false)
 
         nextButton.setOnClickListener {
-            val enteredOtp = otpInput.rawText.toString()
-            if (enteredOtp.length == 6) {
-                val phoneAuthCredential = verificationCode?.let { it1 ->
-                    PhoneAuthProvider.getCredential(
-                        it1,
-                        enteredOtp
-                    )
-                }
-                if (phoneAuthCredential != null) {
-                    signIn(phoneAuthCredential)
-                } else {
-                    showPop()
-                }
-            } else {
-                showPop()
-            }
+            viewModel.signInButtonClick()
         }
+
         resendCode.text = "Не приходить СМС ?"
 
         resendCode.setOnClickListener {
-            if (isClosePopUpClicked) {
-                isClosePopUpClicked = false
-                isTimerRunning = false
-                resendTimer?.cancel()
-            } else {
-                val closeButtonId = R.id.close_popup_button
-                val resendButtonId = R.id.popup_button
-                ResendCodePopup(phoneNumber!!, closeButtonId, resendButtonId)
-                    .show(supportFragmentManager, "ResendCodePopup")
+            viewModel.resendButtonClick()
+        }
+
+        viewModel.onSignInClick.observe(this) { signInClick ->
+            if (signInClick) {
+                handleSignIn()
             }
         }
-    }
 
+        viewModel.onResendClick.observe(this) { resendClick ->
+            if (resendClick) {
+                handleResend()
+            }
+        }
+
+    }
+    private fun handleSignIn() {
+        val enteredOtp = otpInput.rawText.toString()
+        if (enteredOtp.length == 6) {
+            val phoneAuthCredential = verificationCode?.let { verificationCode ->
+                PhoneAuthProvider.getCredential(
+                    verificationCode,
+                    enteredOtp
+                )
+            }
+            if (phoneAuthCredential != null) {
+                signIn(phoneAuthCredential)
+            } else {
+                showPop()
+            }
+        } else {
+            showPop()
+        }
+    }
+    private fun handleResend() {
+        if (isClosePopUpClicked) {
+            isClosePopUpClicked = false
+            isTimerRunning = false
+            resendTimer?.cancel()
+        } else {
+            resendPop()
+        }
+    }
     public fun sendOtp(phoneNumber: String?, isResend: Boolean) {
         val optionsBuilder = PhoneAuthOptions.newBuilder(auth)
             .setPhoneNumber(phoneNumber!!)
@@ -115,7 +140,6 @@ class OTPActivity : AppCompatActivity() {
         }
         PhoneAuthProvider.verifyPhoneNumber(optionsBuilder.build())
     }
-
     private fun signIn(phoneAuthCredential: PhoneAuthCredential) {
         mAuth.signInWithCredential(phoneAuthCredential)
             .addOnCompleteListener(this) { task ->
@@ -129,13 +153,11 @@ class OTPActivity : AppCompatActivity() {
             }
     }
 
-    private var resendTimer: Timer? = null // Змінна для таймера
-
-    public fun startResendTimer() {
+    private var resendTimer: Timer? = null
+    fun startResendTimer() {
         resendCode.isEnabled = false
         resendCode.text = "Не приходить СМС ?"
 
-        // Cancel the previous timer if it exists
         resendTimer?.cancel()
 
         val handler = Handler(Looper.getMainLooper())
@@ -157,13 +179,11 @@ class OTPActivity : AppCompatActivity() {
             }
         }, 1000, 1000)
     }
-
     private fun showPop() {
         val title = "Невірно введено код з смс. Повторіть спробу"
         val showPopUp = PopUpFragment(title)
         showPopUp.show(supportFragmentManager, "showPopUp")
     }
-
     private fun resendPop() {
         val title = "Смс з кодом було відправлено. Повторити відправку? "
         phoneNumber?.let {

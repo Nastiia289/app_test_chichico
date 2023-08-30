@@ -6,63 +6,59 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
+import androidx.lifecycle.ViewModelProvider
 import br.com.sapereaude.maskedEditText.MaskedEditText
 import com.example.test.R
+import com.example.test.databinding.ActivityPhoneOtpBinding
 import com.example.test.fragments.PopUpFragment
 
 class PhoneOTPActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivityPhoneOtpBinding
     private lateinit var enterNum: MaskedEditText
     private lateinit var checkBox: CheckBox
     private lateinit var checkboxUncheckedDrawable: Drawable
     private lateinit var checkboxCheckedDrawable: Drawable
     private lateinit var sendOtpPageButton: Button
+    private lateinit var viewModel: PhoneOTPActivityViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_phone_otp)
+        binding = ActivityPhoneOtpBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        enterNum = findViewById(R.id.enter_your_number)
-        sendOtpPageButton = findViewById(R.id.phone_number_next)
+        viewModel = ViewModelProvider(this)[PhoneOTPActivityViewModel::class.java]
 
-        checkBox = findViewById(R.id.agree_login)
+        enterNum = binding.enterYourNumber
+        sendOtpPageButton = binding.phoneNumberNext
+
+        checkBox = binding.agreeLogin
         checkboxUncheckedDrawable = resources.getDrawable(R.drawable.ic_check, null)
         checkboxCheckedDrawable = resources.getDrawable(R.drawable.ic_checked, null)
 
         checkBox.buttonDrawable = checkboxUncheckedDrawable
         checkBox.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                checkBox.buttonDrawable = checkboxCheckedDrawable
-            } else {
-                checkBox.buttonDrawable = checkboxUncheckedDrawable
-            }
+            checkBox.buttonDrawable = if (isChecked) checkboxCheckedDrawable else checkboxUncheckedDrawable
         }
 
         sendOtpPageButton.setOnClickListener{
             val inputText = enterNum.rawText
-            if (inputText.length == 9 && checkBox.isChecked) {
-                val phoneNumber = "+380$inputText"
+            val isCheckBoxChecked = checkBox.isChecked
+
+            viewModel.validateAndNavigate(inputText, isCheckBoxChecked)
+        }
+
+        viewModel.onValidationComplete.observe(this) { validationResult ->
+            if (validationResult.first) {
+                val phoneNumber = validationResult.second
                 val change = Intent(this@PhoneOTPActivity, OTPActivity::class.java)
                 change.putExtra("phone", phoneNumber)
                 startActivity(change)
             } else {
-                if (inputText.isEmpty() || inputText.length < 9 || checkBox.isChecked) {
-                    val errorMessage = "Невірно введений номер телефону. Повторіть спробу"
-                    val errorPopUp = PopUpFragment.newInstance(errorMessage)
-                    errorPopUp.show(supportFragmentManager, "errorPopUp")
-                }
-                if(inputText.length == 9 && !checkBox.isChecked){
-                    val errorMessage = "Прочитайте, будь ласка,\n" +
-                            "Правила і умови роботи компанії, поставте галочку, щоб продовжити реєстрацію"
-                    val errorPopUp = PopUpFragment.newInstance(errorMessage)
-                    errorPopUp.show(supportFragmentManager, "errorPopUp")
-                }
+                val errorMessage = validationResult.second
+                val errorPopUp = PopUpFragment.newInstance(errorMessage)
+                errorPopUp.show(supportFragmentManager, "errorPopUp")
             }
         }
-    }
-    private fun showPop() {
-        val title = "Прочитайте, будь ласка,\nПравила і умови роботи компанії, поставте галочку, щоб продовжити реєстрацію"
-        val showPopUp = PopUpFragment(title)
-        showPopUp.show(supportFragmentManager, "showPopUp")
     }
 }

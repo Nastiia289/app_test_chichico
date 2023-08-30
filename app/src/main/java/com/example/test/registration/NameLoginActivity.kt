@@ -5,8 +5,9 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
-import com.example.test.GeneralPage
-import com.example.test.R
+import androidx.lifecycle.ViewModelProvider
+import com.example.test.GeneralPageActivity
+import com.example.test.databinding.ActivityNameBinding
 import com.example.test.fragments.PopUpFragment
 import com.example.test.model.UserModel
 import com.example.test.utils.FirebaseUtil
@@ -14,6 +15,9 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.Timestamp
 
 class NameLoginActivity : AppCompatActivity() {
+
+    private lateinit var viewModel: NameLoginActivityViewModel
+    private lateinit var binding: ActivityNameBinding
     private lateinit var toNextPage: Button
     private lateinit var userName: EditText
     private lateinit var userModel: UserModel
@@ -22,10 +26,13 @@ class NameLoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_name)
+        binding = ActivityNameBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        toNextPage = findViewById(R.id.from_name_page)
-        userName = findViewById(R.id.user_name)
+        viewModel = ViewModelProvider(this)[NameLoginActivityViewModel::class.java]
+
+        toNextPage = binding.fromNamePage
+        userName = binding.userName
 
         phoneNumber = intent.getStringExtra("phone")
         userModel = UserModel(phoneNumber, "", Timestamp.now())
@@ -33,22 +40,20 @@ class NameLoginActivity : AppCompatActivity() {
         getUserName()
 
         toNextPage.setOnClickListener {
-            setUserName()
+            val username = userName.text.toString()
+            viewModel.setNameAndNavigate(username, phoneNumber!!)
         }
-    }
 
-    private fun setUserName() {
-        val username = userName.text.toString()
-        if (username.isEmpty() || username.length < 3) {
-           showPop()
+        toNextPage.setOnClickListener{
+            viewModel.onNameSetClick()
         }
-        userModel.username = username
-        userModel.phone = phoneNumber // Додайте цей рядок для запису phoneNumber
-        FirebaseUtil.currentUserDetails().set(userModel).addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val change = Intent(this@NameLoginActivity, GeneralPage::class.java)
+        viewModel.onNameSet.observe(this) { nameSet ->
+            if (nameSet) {
+                val change = Intent(this@NameLoginActivity, GeneralPageActivity::class.java)
                 change.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(change)
+            } else {
+                showPop()
             }
         }
     }
