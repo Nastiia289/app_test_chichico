@@ -1,4 +1,4 @@
-package com.example.test.registration
+package com.example.test.registration.phone_activity
 
 import android.content.Intent
 import android.graphics.drawable.Drawable
@@ -11,6 +11,7 @@ import br.com.sapereaude.maskedEditText.MaskedEditText
 import com.example.test.R
 import com.example.test.databinding.ActivityPhoneOtpBinding
 import com.example.test.fragments.PopUpFragment
+import com.example.test.registration.otp_activity.OTPActivity
 
 class PhoneOTPActivity : AppCompatActivity() {
 

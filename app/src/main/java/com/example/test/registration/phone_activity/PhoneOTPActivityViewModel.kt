@@ -1,4 +1,4 @@
-package com.example.test.registration
+package com.example.test.registration.phone_activity
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,7 +8,6 @@ class PhoneOTPActivityViewModel : ViewModel() {
     val onValidationComplete: MutableLiveData<Pair<Boolean, String>> by lazy {
         MutableLiveData<Pair<Boolean, String>>()
     }
-
     fun validateAndNavigate(inputText: String, isCheckBoxChecked: Boolean) {
         if (inputText.length == 9 && isCheckBoxChecked) {
             val phoneNumber = "+380$inputText"

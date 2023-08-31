@@ -1,4 +1,4 @@
-package com.example.test.registration
+package com.example.test.registration.name_activity
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import androidx.lifecycle.ViewModelProvider
-import com.example.test.GeneralPageActivity
+import com.example.test.general.general_page_activity.GeneralPageActivity
 import com.example.test.databinding.ActivityNameBinding
 import com.example.test.fragments.PopUpFragment
 import com.example.test.model.UserModel

@@ -1,4 +1,4 @@
-package com.example.test
+package com.example.test.general.chang_location_activity
 
 import android.Manifest
 import android.content.Intent
@@ -11,6 +11,8 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
+import com.example.test.R
+import com.example.test.general.restauration_activity.RestorationActivity
 import com.example.test.databinding.ActivityChangLocationBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices

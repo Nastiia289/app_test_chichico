@@ -1,4 +1,4 @@
-package com.example.test
+package com.example.test.general.general_page_activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.MutableLiveData
 

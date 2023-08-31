@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:paddingHorizontal="20dp"
     android:paddingTop="15dp"
-    tools:context=".GeneralPageActivity">
+    tools:context=".general.general_page_activity.GeneralPageActivity">
     <LinearLayout
         android:id="@+id/user_card"
         android:layout_width="match_parent"

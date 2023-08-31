@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".RestorationActivity">
+    tools:context=".general.restauration_activity.RestorationActivity">
     <com.denzcoskun.imageslider.ImageSlider
         android:id="@+id/ImageSlider"
         android:layout_width="match_parent"

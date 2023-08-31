@@ -32,28 +32,28 @@
         android:theme="@style/Theme.Test"
         tools:targetApi="31">
     <activity
-            android:name=".AddReviewActivity"
+            android:name=".general.add_review_activity.AddReviewActivity"
             android:exported="false" />
         <activity
-            android:name=".ChangLocation"
+            android:name=".general.chang_location_activity.ChangLocation"
             android:exported="false" />
         <activity
-            android:name=".RestorationActivity"
+            android:name=".general.restauration_activity.RestorationActivity"
             android:exported="false" />
         <activity
-            android:name=".GeneralPageActivity"
+            android:name=".general.general_page_activity.GeneralPageActivity"
             android:exported="false" />
         <activity
-            android:name=".registration.NameLoginActivity"
+            android:name=".registration.name_activity.NameLoginActivity"
             android:exported="false" />
         <activity
-            android:name=".registration.OTPActivity"
+            android:name=".registration.otp_activity.OTPActivity"
             android:exported="false" />
         <activity
-            android:name=".registration.PhoneOTPActivity"
+            android:name=".registration.phone_activity.PhoneOTPActivity"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".general.main_activity.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

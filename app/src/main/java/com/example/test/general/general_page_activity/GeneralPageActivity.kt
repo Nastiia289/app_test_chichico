@@ -1,4 +1,4 @@
-package com.example.test
+package com.example.test.general.general_page_activity
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
@@ -6,9 +6,8 @@ import android.os.Bundle
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.lifecycle.ViewModelProvider
-import com.example.test.ChangLocation
-import com.example.test.GeneralPageActivityViewModel
-import com.example.test.RestorationActivity
+import com.example.test.general.restauration_activity.RestorationActivity
+import com.example.test.general.chang_location_activity.ChangLocation
 import com.example.test.databinding.ActivityGeneralPageBinding
 
 class GeneralPageActivity : AppCompatActivity() {

@@ -1,4 +1,4 @@
-package com.example.test.registration
+package com.example.test.registration.name_activity
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel

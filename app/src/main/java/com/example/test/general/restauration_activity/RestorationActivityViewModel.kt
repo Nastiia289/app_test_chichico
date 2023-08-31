@@ -1,4 +1,4 @@
-package com.example.test
+package com.example.test.general.restauration_activity
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel

@@ -1,4 +1,4 @@
-package com.example.test.registration
+package com.example.test.registration.otp_activity
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
@@ -13,6 +13,7 @@ import com.example.test.R
 import com.example.test.databinding.ActivityOtpBinding
 import com.example.test.fragments.PopUpFragment
 import com.example.test.fragments.ResendCodePopup
+import com.example.test.registration.name_activity.NameLoginActivity
 import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential

@@ -1,4 +1,4 @@
-package com.example.test
+package com.example.test.general.restauration_activity
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
@@ -11,7 +11,11 @@ import androidx.lifecycle.ViewModelProvider
 import com.denzcoskun.imageslider.ImageSlider
 import com.denzcoskun.imageslider.constants.ScaleTypes
 import com.denzcoskun.imageslider.models.SlideModel
+import com.example.test.R
 import com.example.test.databinding.ActivityRestorationBinding
+import com.example.test.general.add_review_activity.AddReviewActivity
+import com.example.test.general.chang_location_activity.ChangLocation
+import com.example.test.general.general_page_activity.GeneralPageActivity
 
 class RestorationActivity : AppCompatActivity() {
 

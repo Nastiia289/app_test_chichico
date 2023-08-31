@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.fragment.app.DialogFragment
-import com.example.test.registration.OTPActivity
+import com.example.test.registration.otp_activity.OTPActivity
 import com.example.test.R
 
 

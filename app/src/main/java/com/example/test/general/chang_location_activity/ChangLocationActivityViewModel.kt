@@ -1,4 +1,4 @@
-package com.example.test
+package com.example.test.general.chang_location_activity
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
