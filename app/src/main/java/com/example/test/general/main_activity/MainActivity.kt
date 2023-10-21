@@ -15,7 +15,7 @@ class MainActivity : AppCompatActivity() {
 
         Handler().postDelayed({
             if (FirebaseUtil.isLoggedIn()){
-                val intent = Intent(this@MainActivity, PhoneOTPActivity::class.java)
+                val intent = Intent(this@MainActivity, GeneralPageActivity::class.java)
                 startActivity(intent)
             }else{
                 val intent = Intent(this@MainActivity, PhoneOTPActivity::class.java)
