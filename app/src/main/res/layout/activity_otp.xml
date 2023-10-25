@@ -69,7 +69,7 @@
                     android:hint="000000"
                     android:inputType="phone"
                     app:keep_hint="true"
-                    app:mask="#-#-#-#-#-#"
+                    app:mask="#-#-#-#"
                     />
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>

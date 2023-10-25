@@ -22,6 +22,10 @@ class OTPActivityViewModel : ViewModel() {
         MutableLiveData<Boolean>()
     }
 
+    val verificationCode: MutableLiveData<Int> by lazy {
+        MutableLiveData<Int>()
+    }
+
     public fun signInButtonClick() {
         onSignInClick.postValue(true)
     }
@@ -29,5 +33,4 @@ class OTPActivityViewModel : ViewModel() {
     public fun resendButtonClick() {
         onResendClick.postValue(true)
     }
-
 }

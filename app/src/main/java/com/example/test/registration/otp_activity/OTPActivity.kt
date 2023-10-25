@@ -1,7 +1,6 @@
 package com.example.test.registration.otp_activity
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -13,24 +12,22 @@ import androidx.lifecycle.lifecycleScope
 import br.com.sapereaude.maskedEditText.MaskedEditText
 import com.example.test.R
 import com.example.test.databinding.ActivityOtpBinding
-import com.example.test.fragments.PopUpFragment
 import com.example.test.fragments.ResendCodePopup
 import com.example.test.registration.name_activity.NameLoginActivity
-import com.example.test.retrofit.ApiAdapter
 import com.example.test.retrofit.ApiService
 import com.example.test.retrofit.UserData
 import com.example.test.retrofit.RetrofitInstance
 import kotlinx.coroutines.launch
 import retrofit2.Call
-import retrofit2.Callback
 import retrofit2.Response
 import java.util.Timer
 import java.util.TimerTask
+import androidx.appcompat.app.AppCompatActivity
+import com.example.test.fragments.PopUpFragment
 
 class OTPActivity : AppCompatActivity() {
 
     private lateinit var viewModel: OTPActivityViewModel
-    private lateinit var apiAdapter: ApiAdapter
     private lateinit var apiService: ApiService
 
     private lateinit var binding: ActivityOtpBinding
@@ -39,11 +36,9 @@ class OTPActivity : AppCompatActivity() {
     lateinit var resendCode: TextView
 
     var phoneNumber: String? = null
-    private var verificationCode: Int? = null
-    private val timeoutSeconds = 60L
+    var verificationCode: Int? = null
     var resendCounter = 30
     var isTimerRunning = false
-
     var isClosePopUpClicked = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,24 +47,13 @@ class OTPActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         viewModel = ViewModelProvider(this)[OTPActivityViewModel::class.java]
-        setupApi()
+        apiService = RetrofitInstance.api
 
         otpInput = binding.loginOtp
         nextButton = binding.loginSmsCodeNextPage
         resendCode = binding.resendOtpCode
 
         phoneNumber = intent.getStringExtra("phone")
-
-        val request = UserData(
-            phoneNumber = phoneNumber ?: "",
-            enteredOtp = 0,
-            name = "",
-            code_otp = 0
-        )
-
-        lifecycleScope.launch {
-            sendOtp(request, false)
-        }
 
         nextButton.setOnClickListener {
             viewModel.signInButtonClick()
@@ -96,61 +80,102 @@ class OTPActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupApi() {
-        binding.loginOtp.apply {
-            val emptyDataList: List<OTPActivity> = emptyList()
-            apiAdapter = ApiAdapter(emptyDataList)
+    private fun resendPop(phoneNumber: String?) {
+        val title = "Смс з кодом було відправлено. Повторити відправку? "
+        phoneNumber?.let {
+            val closeButtonId = R.id.close_popup_button
+            val resendButtonId = R.id.popup_button
+            ResendCodePopup(this, closeButtonId, resendButtonId, phoneNumber, apiService).show(
+                supportFragmentManager,
+                "com.example.test.fragments.ResendCodePopup"
+            )
+            initiateMobileCheck(phoneNumber)
         }
-        apiService = RetrofitInstance.api
     }
 
-    suspend fun sendOtp(phoneNumber: UserData, isResend: Boolean) {
-        val apiCall: Call<UserData> = if (isResend) {
-            apiService.checkMobile(phoneNumber)
+    private fun handleResend() {
+        if (isClosePopUpClicked) {
+            isClosePopUpClicked = false
+            isTimerRunning = false
         } else {
-            apiService.sendOtp(phoneNumber)
+            resendPop(phoneNumber)
         }
+    }
 
-        apiCall.enqueue(object : Callback<UserData> {
-            override fun onResponse(call: Call<UserData>, response: Response<UserData>) {
-                val statusCode = response.code()
+    private suspend fun sendMobileCheckRequest(phoneNumber: String) {
+        try {
+            if (isClosePopUpClicked) {
+                return
+            }
+            Log.d("OTPActivity", "Sending mobile check request for phone number: $phoneNumber")
+            val call: Call<UserData> = apiService.checkMobile(phoneNumber)
+            val response: Response<UserData> = call.execute()
 
-                when (statusCode) {
+            if (response.isSuccessful) {
+                val responseData = response.body()
+                Log.d(
+                    "OTPActivity",
+                    "Received a successful response from the server with code: ${response.code()}"
+                )
+                when (response.code()) {
                     201 -> {
-                        val responseData = response.body()
                         if (responseData != null) {
                             verificationCode = responseData.code_otp
+                            Log.d("OTPActivity", "Received verification code: $verificationCode")
                         }
                     }
 
                     204 -> {
-                        // Обробка випадку, коли SMS не було відправлено
+                        Log.d("OTPActivity", "SMS was not sent")
                     }
 
                     403 -> {
-                        // Обробка випадку, коли доступ заборонено
+                        Log.d("OTPActivity", "Access denied")
                     }
 
                     else -> {
-                        // Інші статуси відповіді
+                        Log.d(
+                            "OTPActivity",
+                            "Received an unexpected response code: ${response.code()}"
+                        )
                         showPop()
                     }
                 }
-
-                // Лог результатів запиту
-                Log.d("OTPActivity", "sendOtp request completed with status code: $statusCode")
+            } else {
+                Log.d(
+                    "OTPActivity",
+                    "Received an unsuccessful response from the server with code: ${response.code()}"
+                )
+                showPop()
             }
+        } catch (e: Exception) {
+            Log.e("OTPActivity", "An exception occurred: ${e.message}")
+            showPop()
+        }
+    }
 
-            override fun onFailure(call: Call<UserData>, t: Throwable) {
-                // Обробка помилок
-                Log.e("OTPActivity", "sendOtp request failed with exception: ${t.message}", t)
+    fun initiateMobileCheck(phoneNumber: String?) {
+        if (isClosePopUpClicked) {
+            isClosePopUpClicked = false
+            isTimerRunning = false
+        } else {
+            lifecycleScope.launch {
+                if (phoneNumber != null) {
+                    sendMobileCheckRequest(phoneNumber)
+                }
             }
-        })
+        }
+    }
+
+    private fun showPop() {
+        val title = "Невірно введено код з смс. Повторіть спробу"
+        val showPopUp = PopUpFragment(title)
+        showPopUp.show(supportFragmentManager, "showPopUp")
     }
 
     private fun handleSignIn() {
         val enteredOtp = otpInput.rawText.toString()
-        if (enteredOtp.length == 6) {
+        if (enteredOtp.length == 4) {
             val enteredCode = enteredOtp.toIntOrNull()
             if (enteredCode != null && enteredCode == verificationCode) {
                 val change = Intent(this@OTPActivity, NameLoginActivity::class.java)
@@ -162,46 +187,9 @@ class OTPActivity : AppCompatActivity() {
         } else {
             showPop()
         }
-
-        // Лог результату входу
-        Log.d("OTPActivity", "handleSignIn completed")
     }
 
-
-
-    private suspend fun handleResend() {
-        if (isClosePopUpClicked) {
-            isClosePopUpClicked = false
-            isTimerRunning = false
-        } else {
-            resendPop(phoneNumber)
-        }
-    }
-
-    private fun resendPop(phoneNumber: String?) {
-        val title = "Смс з кодом було відправлено. Повторити відправку? "
-        phoneNumber?.let {
-            val closeButtonId = R.id.close_popup_button // Замініть це на ідентифікатор рядка з ресурсів
-            val resendButtonId = R.id.popup_button // Замініть це на ідентифікатор рядка з ресурсів
-            val request = UserData(
-                phoneNumber = phoneNumber ?: "",
-                enteredOtp = 0,
-                name = "",
-                code_otp = 0
-            )
-            ResendCodePopup(request, phoneNumber, closeButtonId, resendButtonId).show(supportFragmentManager, "ResendCodePopup")
-        }
-    }
-
-
-
-    private fun showPop() {
-        val title = "Невірно введено код з смс. Повторіть спробу"
-        val showPopUp = PopUpFragment(title)
-        showPopUp.show(supportFragmentManager, "showPopUp")
-    }
-
-    private var resendTimer: Timer? = null
+    var resendTimer: Timer? = null
 
     fun startResendTimer() {
         resendCode.isEnabled = false
@@ -228,8 +216,6 @@ class OTPActivity : AppCompatActivity() {
             }
         }, 1000, 1000)
 
-        // Лог запуску таймера
         Log.d("OTPActivity", "Resend timer started")
     }
-
 }
