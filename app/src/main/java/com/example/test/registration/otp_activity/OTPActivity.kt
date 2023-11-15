@@ -18,7 +18,6 @@ import com.example.test.retrofit.ApiService
 import com.example.test.retrofit.UserData
 import com.example.test.retrofit.RetrofitInstance
 import kotlinx.coroutines.launch
-import retrofit2.Call
 import retrofit2.Response
 import java.util.Timer
 import java.util.TimerTask
@@ -33,10 +32,11 @@ class OTPActivity : AppCompatActivity() {
     private lateinit var binding: ActivityOtpBinding
     private lateinit var otpInput: MaskedEditText
     private lateinit var nextButton: Button
+    private var receivedOTP: Int? = null
     lateinit var resendCode: TextView
 
     var phoneNumber: String? = null
-    var verificationCode: Int? = null
+    private var verificationCode: Int? = null
     var resendCounter = 30
     var isTimerRunning = false
     var isClosePopUpClicked = false
@@ -85,7 +85,7 @@ class OTPActivity : AppCompatActivity() {
         phoneNumber?.let {
             val closeButtonId = R.id.close_popup_button
             val resendButtonId = R.id.popup_button
-            ResendCodePopup(this, closeButtonId, resendButtonId, phoneNumber, apiService).show(
+            ResendCodePopup(this, closeButtonId, resendButtonId).show(
                 supportFragmentManager,
                 "com.example.test.fragments.ResendCodePopup"
             )
@@ -99,7 +99,14 @@ class OTPActivity : AppCompatActivity() {
             isTimerRunning = false
         } else {
             resendPop(phoneNumber)
+            isTimerRunning = true
+            startResendTimer()
         }
+    }
+
+    private fun showPop(message: String) {
+        val showPopUp = PopUpFragment(message)
+        showPopUp.show(supportFragmentManager, "showPopUp")
     }
 
     private suspend fun sendMobileCheckRequest(phoneNumber: String) {
@@ -107,50 +114,43 @@ class OTPActivity : AppCompatActivity() {
             if (isClosePopUpClicked) {
                 return
             }
-            Log.d("OTPActivity", "Sending mobile check request for phone number: $phoneNumber")
-            val call: Call<UserData> = apiService.checkMobile(phoneNumber)
-            val response: Response<UserData> = call.execute()
+            Log.d("OTPActivity", "Checking phone number: $phoneNumber")
+
+            val response: Response<List<UserData>> = apiService.checkMobile(phoneNumber)
 
             if (response.isSuccessful) {
                 val responseData = response.body()
-                Log.d(
-                    "OTPActivity",
-                    "Received a successful response from the server with code: ${response.code()}"
-                )
-                when (response.code()) {
-                    201 -> {
-                        if (responseData != null) {
-                            verificationCode = responseData.code_otp
-                            Log.d("OTPActivity", "Received verification code: $verificationCode")
-                        }
-                    }
+                Log.d("OTPActivity", "Response body: $responseData")
 
-                    204 -> {
-                        Log.d("OTPActivity", "SMS was not sent")
-                    }
+                if (response.code() == 201) {
+                    if (!responseData.isNullOrEmpty()) {
+                        val userData = responseData[0]
+                        verificationCode = userData.code_otp
+                        receivedOTP = userData.code_otp
+                        Log.d("OTPActivity", "Received verification code: $verificationCode")
 
-                    403 -> {
-                        Log.d("OTPActivity", "Access denied")
+                        val change = Intent(this@OTPActivity, NameLoginActivity::class.java)
+                        change.putExtra("phone", phoneNumber)
+                        startActivity(change)
+                    } else {
+                        Log.e("OTPActivity", "Error: Server response is empty. Response code: ${response.code()}")
+                        isClosePopUpClicked = true
+                        showPop("Упс, щось пішло не так. Server response is empty.")
                     }
-
-                    else -> {
-                        Log.d(
-                            "OTPActivity",
-                            "Received an unexpected response code: ${response.code()}"
-                        )
-                        showPop()
-                    }
+                } else {
+                    Log.e("OTPActivity", "Error: HTTP ${response.code()}. Response body: $responseData")
+                    isClosePopUpClicked = true
+                    showPop("Упс, щось пішло не так. HTTP ${response.code()}")
                 }
             } else {
-                Log.d(
-                    "OTPActivity",
-                    "Received an unsuccessful response from the server with code: ${response.code()}"
-                )
-                showPop()
+                Log.e("OTPActivity", "Error: HTTP ${response.code()}. Response body: ${response.errorBody()?.string()}")
+                isClosePopUpClicked = true
+                showPop("Упс, щось пішло не так. HTTP ${response.code()}")
             }
         } catch (e: Exception) {
-            Log.e("OTPActivity", "An exception occurred: ${e.message}")
-            showPop()
+            Log.e("OTPActivity", "Error: ${e.message}")
+            isClosePopUpClicked = true
+            showPop("Сталася помилка: ${e.message}")
         }
     }
 
@@ -167,27 +167,24 @@ class OTPActivity : AppCompatActivity() {
         }
     }
 
-    private fun showPop() {
-        val title = "Невірно введено код з смс. Повторіть спробу"
-        val showPopUp = PopUpFragment(title)
-        showPopUp.show(supportFragmentManager, "showPopUp")
-    }
-
     private fun handleSignIn() {
         val enteredOtp = otpInput.rawText.toString()
         if (enteredOtp.length == 4) {
             val enteredCode = enteredOtp.toIntOrNull()
+            Log.d("OTPActivity", "Entered code: $enteredCode, Verification code: $verificationCode")
+
             if (enteredCode != null && enteredCode == verificationCode) {
                 val change = Intent(this@OTPActivity, NameLoginActivity::class.java)
                 change.putExtra("phone", phoneNumber)
                 startActivity(change)
             } else {
-                showPop()
+                showPop("Невірно введений OTP код")
             }
         } else {
-            showPop()
+            showPop("OTP повинен містити 4 цифри")
         }
     }
+
 
     var resendTimer: Timer? = null
 

@@ -5,4 +5,6 @@ data class UserData(
     val enteredOtp: Int?,
     val name: String?,
     val code_otp: Int?
-)
+) {
+    constructor(phoneNumber: String, code_otp: Int?) : this(phoneNumber, null, null, code_otp)
+}

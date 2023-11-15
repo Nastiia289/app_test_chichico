@@ -8,7 +8,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 
 object RetrofitInstance {
-    private const val BASE_URL = "https://dev.cherest.com.ua/api/"
+    private const val BASE_URL = "https://dev.cherest.com.ua/"
 
     val api: ApiService by lazy {
         val interceptor = HttpLoggingInterceptor { message -> Log.d("HTTP Request", message) }.apply {

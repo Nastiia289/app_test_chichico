@@ -8,14 +8,11 @@ import android.widget.Button
 import androidx.fragment.app.DialogFragment
 import com.example.test.R
 import com.example.test.registration.otp_activity.OTPActivity
-import com.example.test.retrofit.ApiService
 
 class ResendCodePopup(
     private val otpActivity: OTPActivity,
     private val closeButtonId: Int,
-    private val resendButtonId: Int,
-    private val phoneNumber: String?,
-    private val apiService: ApiService
+    private val resendButtonId: Int
 ) : DialogFragment() {
 
     private var isResending = false
